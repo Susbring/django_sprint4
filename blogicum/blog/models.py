@@ -93,10 +93,9 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse("blog:profile", args=[self.author])
-    
+
     def comment_count(self):
         return self.comments.count()
-    
 
     def __str__(self):
         return self.title
@@ -117,7 +116,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return (self.text)
-    
+
 
 class Profile(models.Model):
     """Модель профиля"""

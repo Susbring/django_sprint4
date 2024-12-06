@@ -121,9 +121,12 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 
     def get_object(self):
         return self.request.user
-    
+
     def get_success_url(self):
-        return reverse_lazy('blog:profile', kwargs={'username': self.request.user.username})
+        return reverse_lazy(
+            'blog:profile',
+            kwargs={'username': self.request.user.username}
+        )
 
 
 class PostEditView(LoginRequiredMixin, UpdateView):
@@ -204,6 +207,7 @@ def edit_comment(request, post_id, comment_id):
         'is_edit': True,
     }
     return render(request, 'blog/comment.html', context)
+
 
 @login_required
 def delete_comment(request, post_id, comment_id):
