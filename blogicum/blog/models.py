@@ -11,6 +11,7 @@ User = get_user_model()
 
 class Category(models.Model):
     """Модель категории"""
+
     title = models.CharField('Заголовок', max_length=MAX_LENGTH_TITLE)
     description = models.TextField('Описание')
     image = models.ImageField('Фото', upload_to='post_images', blank=True)
@@ -37,6 +38,7 @@ class Category(models.Model):
 
 class Location(models.Model):
     """Модель локации"""
+
     name = models.CharField('Название места', max_length=MAX_LENGTH_TITLE)
     created_at = models.DateTimeField('Добавлено', auto_now_add=True)
     is_published = models.BooleanField('Опубликовано', default=True)
@@ -52,6 +54,7 @@ class Location(models.Model):
 
 class Post(models.Model):
     """Модель поста"""
+
     title = models.CharField('Заголовок', max_length=MAX_LENGTH_TITLE)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
@@ -101,6 +104,7 @@ class Post(models.Model):
 
 class Comment(models.Model):
     """Модель комментария"""
+
     post = models.ForeignKey(
         Post, on_delete=models.CASCADE, related_name='comments', null=True
     )
@@ -117,6 +121,7 @@ class Comment(models.Model):
 
 class Profile(models.Model):
     """Модель профиля"""
+
     is_published = models.BooleanField(
         default=True,
         verbose_name='Опубликовано',

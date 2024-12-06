@@ -40,6 +40,7 @@ def index(request):
 
 class PostDetailView(DetailView):
     """CBV функция страницы поста"""
+
     model = Post
     template_name = 'blog/detail.html'
     context_object_name = 'post'
@@ -100,6 +101,7 @@ def profile(request, username):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     """CBV функция создания поста"""
+
     model = Post
     form_class = CreateForm
     template_name = 'blog/create.html'
@@ -112,6 +114,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class ProfileEditView(LoginRequiredMixin, UpdateView):
     """CBV функция редактирования профиля"""
+
     model = User
     form_class = ProfileForm
     template_name = 'blog/user.html'
@@ -125,6 +128,7 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 
 class PostEditView(LoginRequiredMixin, UpdateView):
     """CBV функция редактирования поста"""
+
     model = Post
     form_class = CreateForm
     template_name = 'blog/create.html'

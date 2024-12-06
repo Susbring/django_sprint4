@@ -12,6 +12,7 @@ User = get_user_model()
 
 class CreateForm(forms.ModelForm):
     """Форма создания"""
+
     class Meta:
         model = Post
         exclude = ('author',)
@@ -23,6 +24,7 @@ class CreateForm(forms.ModelForm):
 
 class CommentForm(forms.ModelForm):
     """Форма комментария"""
+
     class Meta:
         model = Comment
         fields = ('text',)
@@ -30,6 +32,7 @@ class CommentForm(forms.ModelForm):
 
 class ProfileForm(forms.ModelForm):
     """Форма профиля"""
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username', 'email')
