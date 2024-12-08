@@ -5,7 +5,6 @@ from django.views.generic import (
     UpdateView,
     DetailView,
 )
-from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404, redirect
@@ -13,9 +12,12 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.http import HttpResponseForbidden
 from django.urls import reverse_lazy
+from .utils import paginator
+from django.db.models import Count
 
 from blog.forms import CreateForm, CommentForm, ProfileForm
 from blog.models import Post, Category, Comment
+from .querysets import apply_publication_filters, apply_publication_annotat
 
 
 User = get_user_model()
@@ -24,14 +26,15 @@ User = get_user_model()
 def index(request):
     """Главная страница."""
     template_name = 'blog/index.html'
-    post_list = Post.objects.select_related('category').filter(
-        pub_date__lte=timezone.now(),
-        is_published=True,
+    post_list = Post.objects.select_related(
+        'category',
+        'location',
+    ).filter(
         category__is_published=True,
     ).order_by('-pub_date')
-    paginator = Paginator(post_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    post_list = apply_publication_filters(post_list)
+    post_list = apply_publication_annotat(post_list)
+    page_obj = paginator(post_list, request)
     context = {
         'page_obj': page_obj
     }
@@ -65,20 +68,13 @@ def category_posts(request, category_slug):
     """Страница с категорией поста."""
     template_name = 'blog/category.html'
     category = get_object_or_404(
-        Category.objects.get_queryset(),
+        Category,
         slug=category_slug,
         is_published=True
     )
-    post_list = category.posts.all().filter(
-        is_published=True,
-        pub_date__lte=timezone.now(),
-        category__slug=category_slug
-    )
-    paginator = Paginator(post_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {'post_list': post_list,
-               'category': category,
+    post_list = apply_publication_filters(category.posts.all())
+    page_obj = paginator(post_list, request)
+    context = {'category': category,
                'page_obj': page_obj}
     return render(request, template_name, context)
 
@@ -86,15 +82,12 @@ def category_posts(request, category_slug):
 def profile(request, username):
     """Вью функция профиля пользователя"""
     profile = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author=profile).order_by('-pub_date')
-    paginator = Paginator(post_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    user_name = profile.get_full_name()
+    post_list = apply_publication_annotat(
+        Post.objects.filter(author=profile).order_by('-pub_date'))
+    page_obj = paginator(post_list, request)
     context = {
         'profile': profile,
         'page_obj': page_obj,
-        'user_name': user_name,
     }
     return render(request, 'blog/profile.html', context)
 
@@ -159,16 +152,16 @@ def delete_post(request, post_id):
     )
     form = CreateForm(instance=instance)
     context = {'form': form}
-    if ((request.method == 'POST')
-       and (instance.author == request.user)):
+    if (request.method == 'POST'
+       and instance.author == request.user):
         instance.delete()
         return redirect('blog:profile', request.user)
-    else:
-        context = {
-            'post': instance,
-            'is_delete': True
-        }
-        return render(request, template_name, context)
+    
+    context = {
+        'post': instance,
+        'is_delete': True
+    }
+    return render(request, template_name, context)
 
 
 @login_required
@@ -204,7 +197,6 @@ def edit_comment(request, post_id, comment_id):
     context = {
         'form': form,
         'comment': comment,
-        'is_edit': True,
     }
     return render(request, 'blog/comment.html', context)
 

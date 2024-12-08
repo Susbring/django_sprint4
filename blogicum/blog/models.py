@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from blog.constants import MAX_LENGTH_TITLE
+from blog.constants import MAX_LENGTH_TEXT
 
 
 User = get_user_model()
@@ -12,7 +12,7 @@ User = get_user_model()
 class Category(models.Model):
     """Модель категории"""
 
-    title = models.CharField('Заголовок', max_length=MAX_LENGTH_TITLE)
+    title = models.CharField('Заголовок', max_length=MAX_LENGTH_TEXT)
     description = models.TextField('Описание')
     image = models.ImageField('Фото', upload_to='post_images', blank=True)
     slug = models.SlugField(
@@ -39,7 +39,7 @@ class Category(models.Model):
 class Location(models.Model):
     """Модель локации"""
 
-    name = models.CharField('Название места', max_length=MAX_LENGTH_TITLE)
+    name = models.CharField('Название места', max_length=MAX_LENGTH_TEXT)
     created_at = models.DateTimeField('Добавлено', auto_now_add=True)
     is_published = models.BooleanField('Опубликовано', default=True)
 
@@ -55,7 +55,7 @@ class Location(models.Model):
 class Post(models.Model):
     """Модель поста"""
 
-    title = models.CharField('Заголовок', max_length=MAX_LENGTH_TITLE)
+    title = models.CharField('Заголовок', max_length=MAX_LENGTH_TEXT)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
@@ -92,10 +92,7 @@ class Post(models.Model):
         ordering = ('-pub_date',)
 
     def get_absolute_url(self):
-        return reverse("blog:profile", args=[self.author])
-
-    def comment_count(self):
-        return self.comments.count()
+        return reverse('blog:profile', args=[self.author])
 
     def __str__(self):
         return self.title
@@ -112,27 +109,9 @@ class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
         ordering = ('created_at',)
 
     def __str__(self):
         return (self.text)
-
-
-class Profile(models.Model):
-    """Модель профиля"""
-
-    is_published = models.BooleanField(
-        default=True,
-        verbose_name='Опубликовано',
-        help_text='Снимите галочку, чтобы скрыть публикацию.',
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name='Добавлено'
-    )
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
-    email = models.EmailField(blank=True)
-    address = models.CharField(max_length=100, blank=True)
-
-    def __str__(self):
-        return self.title
