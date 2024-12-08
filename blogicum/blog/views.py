@@ -1,5 +1,4 @@
 """View-функции"""
-from django.utils import timezone
 from django.views.generic import (
     CreateView,
     UpdateView,
@@ -13,7 +12,6 @@ from django.http import Http404
 from django.http import HttpResponseForbidden
 from django.urls import reverse_lazy
 from .utils import paginator
-from django.db.models import Count
 
 from blog.forms import CreateForm, CommentForm, ProfileForm
 from blog.models import Post, Category, Comment
@@ -156,7 +154,7 @@ def delete_post(request, post_id):
        and instance.author == request.user):
         instance.delete()
         return redirect('blog:profile', request.user)
-    
+
     context = {
         'post': instance,
         'is_delete': True
