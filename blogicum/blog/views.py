@@ -11,11 +11,11 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.http import HttpResponseForbidden
 from django.urls import reverse_lazy
-from .utils import paginator
 
 from blog.forms import CreateForm, CommentForm, ProfileForm
 from blog.models import Post, Category, Comment
 from .querysets import apply_publication_filters, apply_publication_annotat
+from .utils import paginated_page_object
 
 
 User = get_user_model()
@@ -27,12 +27,11 @@ def index(request):
     post_list = Post.objects.select_related(
         'category',
         'location',
-    ).filter(
-        category__is_published=True,
+        'author',
     ).order_by('-pub_date')
     post_list = apply_publication_filters(post_list)
     post_list = apply_publication_annotat(post_list)
-    page_obj = paginator(post_list, request)
+    page_obj = paginated_page_object(post_list, request)
     context = {
         'page_obj': page_obj
     }
@@ -71,7 +70,7 @@ def category_posts(request, category_slug):
         is_published=True
     )
     post_list = apply_publication_filters(category.posts.all())
-    page_obj = paginator(post_list, request)
+    page_obj = paginated_page_object(post_list, request)
     context = {'category': category,
                'page_obj': page_obj}
     return render(request, template_name, context)
@@ -81,8 +80,8 @@ def profile(request, username):
     """Вью функция профиля пользователя"""
     profile = get_object_or_404(User, username=username)
     post_list = apply_publication_annotat(
-        Post.objects.filter(author=profile).order_by('-pub_date'))
-    page_obj = paginator(post_list, request)
+        profile.posts.filter(author=profile).order_by('-pub_date'))
+    page_obj = paginated_page_object(post_list, request)
     context = {
         'profile': profile,
         'page_obj': page_obj,
@@ -157,7 +156,6 @@ def delete_post(request, post_id):
 
     context = {
         'post': instance,
-        'is_delete': True
     }
     return render(request, template_name, context)
 
@@ -190,8 +188,7 @@ def edit_comment(request, post_id, comment_id):
         if form.is_valid():
             form.save()
             return redirect('blog:post_detail', post_id)
-    else:
-        form = CommentForm(instance=comment)
+    form = CommentForm(instance=comment)
     context = {
         'form': form,
         'comment': comment,
@@ -205,7 +202,7 @@ def delete_comment(request, post_id, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
     if comment.author != request.user:
         return HttpResponseForbidden(
-            "У вас нет прав для удаления этого комментария."
+            'У вас нет прав для удаления этого комментария.'
         )
 
     if request.method == "POST":
@@ -214,6 +211,5 @@ def delete_comment(request, post_id, comment_id):
 
     context = {
         'comment': comment,
-        'is_delete': True,
     }
     return render(request, 'blog/comment.html', context)
