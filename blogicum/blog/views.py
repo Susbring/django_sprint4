@@ -73,7 +73,7 @@ def category_posts(request, category_slug):
     )
     post_list = apply_publication_filters(
         category.posts.select_related('location', 'author')
-        )
+    )
     page_obj = paginated_page_object(
         post_list,
         request,
