@@ -6,6 +6,8 @@ def apply_publication_filters(queryset):
     """Реализация фильтров на кварисеты."""
     return queryset.select_related(
         'category',
+        'location',
+        'author',
     ).filter(
         pub_date__lte=timezone.now(),
         is_published=True,

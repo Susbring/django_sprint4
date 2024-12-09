@@ -16,6 +16,7 @@ from blog.forms import CreateForm, CommentForm, ProfileForm
 from blog.models import Post, Category, Comment
 from .querysets import apply_publication_filters, apply_publication_annotat
 from .utils import paginated_page_object
+from .constants import NUMBER_OF_RECORDS_ON_THE_PAGE
 
 
 User = get_user_model()
@@ -26,12 +27,13 @@ def index(request):
     template_name = 'blog/index.html'
     post_list = Post.objects.select_related(
         'category',
-        'location',
         'author',
     ).order_by('-pub_date')
-    post_list = apply_publication_filters(post_list)
-    post_list = apply_publication_annotat(post_list)
-    page_obj = paginated_page_object(post_list, request)
+    post_list = apply_publication_annotat(apply_publication_filters(post_list))
+    page_obj = paginated_page_object(
+        post_list,
+        request,
+        NUMBER_OF_RECORDS_ON_THE_PAGE)
     context = {
         'page_obj': page_obj
     }
@@ -69,8 +71,13 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True
     )
-    post_list = apply_publication_filters(category.posts.all())
-    page_obj = paginated_page_object(post_list, request)
+    post_list = apply_publication_filters(
+        category.posts.select_related('location', 'author')
+        )
+    page_obj = paginated_page_object(
+        post_list,
+        request,
+        NUMBER_OF_RECORDS_ON_THE_PAGE)
     context = {'category': category,
                'page_obj': page_obj}
     return render(request, template_name, context)
@@ -80,8 +87,11 @@ def profile(request, username):
     """Вью функция профиля пользователя"""
     profile = get_object_or_404(User, username=username)
     post_list = apply_publication_annotat(
-        profile.posts.filter(author=profile).order_by('-pub_date'))
-    page_obj = paginated_page_object(post_list, request)
+        profile.posts.all())
+    page_obj = paginated_page_object(
+        post_list,
+        request,
+        NUMBER_OF_RECORDS_ON_THE_PAGE)
     context = {
         'profile': profile,
         'page_obj': page_obj,
@@ -205,7 +215,7 @@ def delete_comment(request, post_id, comment_id):
             'У вас нет прав для удаления этого комментария.'
         )
 
-    if request.method == "POST":
+    if request.method == 'POST':
         comment.delete()
         return redirect('blog:post_detail', post_id)
 

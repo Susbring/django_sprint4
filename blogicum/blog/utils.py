@@ -1,11 +1,9 @@
 from django.core.paginator import Paginator
 
-from .constants import NUMBER_OF_RECORDS_ON_THE_PAGE
 
-
-def paginated_page_object(posts, request):
+def paginated_page_object(posts, request, posts_per_page=10):
     """Функция возвращает объекты страницы с пагинатаором."""
-    paginator = Paginator(posts, NUMBER_OF_RECORDS_ON_THE_PAGE)
+    paginator = Paginator(posts, posts_per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return page_obj
