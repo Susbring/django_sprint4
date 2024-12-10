@@ -25,11 +25,9 @@ User = get_user_model()
 def index(request):
     """Главная страница."""
     template_name = 'blog/index.html'
-    post_list = Post.objects.select_related(
-        'category',
-        'author',
-    ).order_by('-pub_date')
-    post_list = apply_publication_annotat(apply_publication_filters(post_list))
+    post_list = apply_publication_annotat(
+        apply_publication_filters(Post.objects.all())
+    )
     page_obj = paginated_page_object(
         post_list,
         request,
@@ -72,7 +70,8 @@ def category_posts(request, category_slug):
         is_published=True
     )
     post_list = apply_publication_filters(
-        category.posts.select_related('location', 'author')
+        apply_publication_filters(
+            category.posts.all())
     )
     page_obj = paginated_page_object(
         post_list,
